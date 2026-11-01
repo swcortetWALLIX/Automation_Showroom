@@ -123,15 +123,13 @@ output "your-public_ip" {
 }
 
 output "warning_allowed_ips_too_wild" {
-  description = "IP Warnings."
-  value       = contains(var.allowed_ips, "0.0.0.0/0") ? "!!!Warning!!!\nAre you sure you want var.allowed_ips to contain the wild of Internet ?\n Prefer to add a list of legitimate networks and/or your <public-IP/32> !" : null
-
+  description = "Set when allowed_ips contains 0.0.0.0/0."
+  value       = contains(var.allowed_ips, "0.0.0.0/0") ? "allowed_ips contains 0.0.0.0/0: the load balancers and the Debian host are open to the whole Internet. Prefer your own public IP (x.x.x.x/32)." : null
 }
 
 output "warning_nlb_internal_false" {
-  description = "NLB Warnings."
-  value       = var.nlb_internal == false ? "!!!Warning!!!\nYou did nlb_internal set as false.\nIt is fun to open NLB in the wild. But this is totally risky.\n NLB works only with 0.0.0.0/0 as ingress. Keep it internal!" : null
-
+  description = "Set when the NLB is internet-facing."
+  value       = var.nlb_internal == false ? "nlb_internal is false: the Bastion SSH, RDP and HTTPS proxies are reachable from allowed_ips over the Internet." : null
 }
 
 output "cloud_init_sm" {

@@ -24,6 +24,7 @@ output "z_connect" {
 }
 
 output "cloudinit_config" {
-  description = "Content of the cloud init. Mostly for debug"
+  description = "Rendered cloud-init (contains the rdpuser password and the private key). For debugging."
+  sensitive   = true
   value       = data.cloudinit_config.integration_debian.rendered
 }

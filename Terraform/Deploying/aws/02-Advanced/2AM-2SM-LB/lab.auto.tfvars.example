@@ -1,0 +1,20 @@
+# Your own public IP (see output your-public_ip). 0.0.0.0/0 exposes the load balancers and the Debian host.
+allowed_ips   = ["127.0.0.1/32"]
+aws-region    = "eu-west-3"
+key_pair_name = "wallix-lab"
+project_name  = "wallix-lab"
+vpc_cidr      = "10.18.0.0/16"
+
+tags = {
+  "Owner" = "<your-email>"
+}
+
+# Optional
+# bastion-version           = "" # empty: latest image, or a prefix such as "10.0"
+# access-manager-version    = "" # empty: latest image
+# number-of-sm              = 2
+# number-of-am              = 2
+# ami-from-aws-marketplace  = true
+# deploy-integration-debian = true
+# alb_internal              = false
+# nlb_internal              = true

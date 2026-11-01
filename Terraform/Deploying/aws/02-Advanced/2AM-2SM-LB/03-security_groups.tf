@@ -1,13 +1,6 @@
-// Default Security Group for VPC
-// Restrict all
+// Default SG of the VPC: only traffic between its members. AM/SM ENIs keep it next to their own SG.
 resource "aws_default_security_group" "default" {
   vpc_id = aws_vpc.cluster.id
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 
   ingress {
     protocol  = "-1"
@@ -22,11 +15,11 @@ resource "aws_default_security_group" "default" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
   tags = merge(
     { Name = "Default_SG" },
     local.common_tags
   )
-
 }
 
 // Access Manager
@@ -45,11 +38,11 @@ resource "aws_security_group" "accessmanager_sg" {
   }
 
   ingress {
-    description = "HTTPS_public"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    description     = "HTTPS from ALB"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
   }
 
   ingress {
@@ -67,6 +60,7 @@ resource "aws_security_group" "accessmanager_sg" {
     protocol    = "tcp"
     cidr_blocks = length(local.am_instances) >= 1 ? local.am_instances : []
   }
+
   ingress {
     description = "HTTP"
     from_port   = 80
@@ -74,6 +68,7 @@ resource "aws_security_group" "accessmanager_sg" {
     protocol    = "tcp"
     cidr_blocks = local.all_az1_az2_subnets
   }
+
   egress {
     description      = "Allow egress"
     from_port        = 0
@@ -87,7 +82,6 @@ resource "aws_security_group" "accessmanager_sg" {
     { Name = "SG_AM" },
     local.common_tags
   )
-
 }
 
 resource "aws_network_interface_sg_attachment" "wallix-am" {
@@ -95,6 +89,7 @@ resource "aws_network_interface_sg_attachment" "wallix-am" {
   security_group_id    = aws_security_group.accessmanager_sg.id
   network_interface_id = module.instance_access_manager[count.index].instance_network_interface_id
 }
+
 // Bastion
 resource "aws_security_group" "bastion_sg" {
   name        = "firewall-sm-${local.project_name}"
@@ -123,6 +118,18 @@ resource "aws_security_group" "bastion_sg" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = local.all_az1_az2_subnets
+  }
+
+  // The NLB preserves client IPs: referencing its SG lets those clients through.
+  dynamic "ingress" {
+    for_each = { Proxy_SSH_from_NLB = 22, Proxy_RDP_from_NLB = 3389, HTTPS_from_NLB = 443 }
+    content {
+      description     = ingress.key
+      from_port       = ingress.value
+      to_port         = ingress.value
+      protocol        = "tcp"
+      security_groups = [aws_security_group.nlb.id]
+    }
   }
 
   ingress {
@@ -154,35 +161,31 @@ resource "aws_security_group" "bastion_sg" {
     { Name = "SG_SM" },
     local.common_tags
   )
-
 }
+
 resource "aws_network_interface_sg_attachment" "wallix-sm" {
   count                = var.number-of-sm
   security_group_id    = aws_security_group.bastion_sg.id
   network_interface_id = module.instance_bastion[count.index].instance_network_interface_id
 }
 
-// Load Balancers
+// Load Balancers: reachable from allowed_ips and from inside the VPC.
 
 resource "aws_security_group" "alb" {
   name        = "firewall-alb-${local.project_name}"
   description = "Allow traffic for ${local.project_name} on Loadbalancer"
   vpc_id      = aws_vpc.cluster.id
 
-  ingress {
-    description = "HTTPS"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "HTTP"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  dynamic "ingress" {
+    for_each = { HTTPS = 443, HTTP = 80 }
+    content {
+      description = ingress.key
+      from_port   = ingress.value
+      to_port     = ingress.value
+      protocol    = "tcp"
+      // The Debian host reaches an internet-facing ALB through its public IP.
+      cidr_blocks = concat(var.allowed_ips, [var.vpc_cidr], local.debian_public_cidrs)
+    }
   }
 
   egress {
@@ -198,7 +201,6 @@ resource "aws_security_group" "alb" {
     { Name = "SG_ALB" },
     local.common_tags
   )
-
 }
 
 resource "aws_security_group" "nlb" {
@@ -206,27 +208,17 @@ resource "aws_security_group" "nlb" {
   description = "Allow traffic for ${local.project_name} on Network Loadbalancer"
   vpc_id      = aws_vpc.cluster.id
 
-  ingress {
-    description = "HTTPS"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # concat(var.allowed_ips, local.all_az1_az2_subnets)
+  dynamic "ingress" {
+    for_each = { HTTPS = 443, RDP = 3389, SSH = 22 }
+    content {
+      description = ingress.key
+      from_port   = ingress.value
+      to_port     = ingress.value
+      protocol    = "tcp"
+      cidr_blocks = concat(var.allowed_ips, [var.vpc_cidr])
+    }
   }
-  ingress {
-    description = "RDP"
-    from_port   = 3389
-    to_port     = 3389
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # concat(var.allowed_ips, local.all_az1_az2_subnets)
-  }
-  ingress {
-    description = "SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # concat(var.allowed_ips, local.all_az1_az2_subnets)
-  }
+
   egress {
     description      = "Allow egress"
     from_port        = 0
@@ -240,6 +232,4 @@ resource "aws_security_group" "nlb" {
     { Name = "SG_NLB" },
     local.common_tags
   )
-
 }
-// Note : NLB security group can be nasty to setup properly. This setup was made to be easy to use, not the best for security.

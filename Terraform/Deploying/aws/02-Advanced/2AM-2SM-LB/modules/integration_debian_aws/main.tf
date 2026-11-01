@@ -1,3 +1,18 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 6.0" // primary_network_interface
+    }
+    cloudinit = {
+      source = "hashicorp/cloudinit"
+    }
+    random = {
+      source = "hashicorp/random"
+    }
+  }
+}
+
 // Get latest Debian Linux AMI
 data "aws_ami" "debian-linux" {
   most_recent = true
@@ -108,6 +123,11 @@ resource "aws_network_interface" "debian-linux" {
 
 resource "aws_eip" "public_ip_debian" {
   instance = aws_instance.debian_admin.id
+
+  tags = merge(
+    { Name = "Integration_Debian-${var.project_name}" },
+    var.tags
+  )
 }
 
 resource "aws_instance" "debian_admin" {
@@ -118,9 +138,12 @@ resource "aws_instance" "debian_admin" {
 
   user_data = data.cloudinit_config.integration_debian.rendered
 
-  network_interface {
+  root_block_device {
+    encrypted = true
+  }
+
+  primary_network_interface {
     network_interface_id = aws_network_interface.debian-linux.id
-    device_index         = 0
   }
 
   tags = merge(

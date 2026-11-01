@@ -12,19 +12,19 @@ variable "to_base64_encode" {
 
 variable "set_service_user_password" {
   default     = false
-  description = "Should we changepasswd for WALLIX Service user ?\n ( Wabadmin, Wabsuper, Wabupgrade)"
+  description = "Set generated passwords for the WALLIX service accounts (wabadmin, wabsuper, wabupgrade)."
   type        = bool
 }
 
 variable "use_of_lb" {
   default     = false
-  description = "Are you going to use a loadbalancer ?"
+  description = "Configure the appliance to be served behind a load balancer."
   type        = bool
 }
 
 variable "http_host_trusted_hostnames" {
   default     = ""
-  description = "fqdn of the loadbalancers which will be added to http_host_trusted_hostnames.\n If muliple values, should be separated by a comma."
+  description = "FQDN of the load balancers to add to http_host_trusted_hostnames, comma separated. Required when use_of_lb is true."
   type        = string
   validation {
     condition     = (var.use_of_lb == true && var.http_host_trusted_hostnames != "") || (var.use_of_lb == false && var.http_host_trusted_hostnames == "")
@@ -35,6 +35,6 @@ variable "http_host_trusted_hostnames" {
 
 variable "set_webui_password_and_crypto" {
   default     = false
-  description = " !!! Session Manager Only !!!\nShould we change password for WebUI Admin and set encryption key?"
+  description = "Bastion (Session Manager) only: set a generated web UI admin password and a generated encryption passphrase."
   type        = bool
 }

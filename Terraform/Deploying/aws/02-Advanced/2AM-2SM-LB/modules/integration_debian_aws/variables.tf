@@ -1,10 +1,10 @@
 variable "allowed_ips" {
   default     = ["127.0.0.1/32"]
-  description = "Specifies the ips/networks allowed to access integration instance. e.g: [''10.0.0.0/16'',''90.15.25.21/32''] "
+  description = "CIDR blocks allowed to reach the integration instance (SSH, RDP), e.g. [\"203.0.113.10/32\"]."
   type        = list(string)
   validation {
     condition     = (contains(var.allowed_ips, "127.0.0.1/32") == false)
-    error_message = "Please change this range to a valid value. 0.0.0.0/0 is not recommanded"
+    error_message = "Replace the 127.0.0.1/32 placeholder with your own CIDR blocks."
   }
 }
 
@@ -48,11 +48,6 @@ variable "project_name" {
 
 variable "sm-instances" {
   description = "list of SM IP or Network in CIDR Format."
-  type        = list(string)
-}
-
-variable "am-instances" {
-  description = "list of AM IP or Network in CIDR Format."
   type        = list(string)
 }
 

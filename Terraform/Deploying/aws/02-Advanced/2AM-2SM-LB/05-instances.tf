@@ -19,7 +19,7 @@ module "instance_access_manager" {
   count                    = var.number-of-am
   source                   = "./modules/aws_wallix_instance"
   ami-from-aws-marketplace = var.ami-from-aws-marketplace
-  aws_instance_size        = var.aws_instance_size_sm
+  aws_instance_size        = var.aws_instance_size_am
   common_tags              = local.common_tags
   disk_size                = var.am_disk_size
   disk_type                = var.am_disk_type
@@ -38,9 +38,8 @@ module "integration_debian" {
   tags              = local.common_tags
   sm-instances      = local.sm_instances
   project_name      = local.project_name
-  am-instances      = local.am_instances
   allowed_ips       = var.allowed_ips
-  subnet_id         = try(aws_subnet.subnet_az_AM[0].id, aws_subnet.subnet_az_SM[0].id) // if no am are created, will use the first bastion subnets
+  subnet_id         = aws_subnet.subnet_az_AM[0].id // AM subnets always exist (at least two, for the ALB)
   aws_instance_size = var.aws_instance_size_debian
   common_tags       = local.common_tags
   vpc_id            = aws_vpc.cluster.id

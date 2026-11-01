@@ -1,3 +1,16 @@
+terraform {
+  required_version = ">= 1.9" // cross-variable validation
+
+  required_providers {
+    cloudinit = {
+      source = "hashicorp/cloudinit"
+    }
+    random = {
+      source = "hashicorp/random"
+    }
+  }
+}
+
 // Define Wallix Services Accounts
 locals {
   wallix_accounts = ["wabadmin", "wabsuper", "wabupgrade"]

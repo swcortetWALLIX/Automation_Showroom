@@ -14,23 +14,21 @@ module "cloudinit-demo" {
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| terraform | >= 1.9 |
 
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | n/a |
-| <a name="provider_random"></a> [random](#provider\_random) | n/a |
-
-## Modules
-
-No modules.
+| ---- | ------- |
+| cloudinit | n/a |
+| random | n/a |
 
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [random_password.cryptokey_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [random_password.password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [random_password.webui_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
@@ -39,22 +37,22 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_http_host_trusted_hostnames"></a> [http\_host\_trusted\_hostnames](#input\_http\_host\_trusted\_hostnames) | fqdn of the loadbalancers which will be added to http\_host\_trusted\_hostnames.<br/> If muliple values, should be separated by a comma. | `string` | `""` | no |
-| <a name="input_set_service_user_password"></a> [set\_service\_user\_password](#input\_set\_service\_user\_password) | Should we changepasswd for WALLIX Service user ?<br/> ( Wabadmin, Wabsuper, Wabupgrade) | `bool` | `false` | no |
-| <a name="input_set_webui_password_and_crypto"></a> [set\_webui\_password\_and\_crypto](#input\_set\_webui\_password\_and\_crypto) | !!! Session Manager Only !!!<br/>Should we change password for WebUI Admin and set encryption key? | `bool` | `false` | no |
-| <a name="input_to_base64_encode"></a> [to\_base64\_encode](#input\_to\_base64\_encode) | Should the user-data be encoded in base64? | `bool` | `false` | no |
-| <a name="input_to_gzip"></a> [to\_gzip](#input\_to\_gzip) | Should the user-data be compressed ? | `bool` | `false` | no |
-| <a name="input_use_of_lb"></a> [use\_of\_lb](#input\_use\_of\_lb) | Are you going to use a loadbalancer ? | `bool` | `false` | no |
+| ---- | ----------- | ---- | ------- | :------: |
+| http\_host\_trusted\_hostnames | FQDN of the load balancers to add to http\_host\_trusted\_hostnames, comma separated. Required when use\_of\_lb is true. | `string` | `""` | no |
+| set\_service\_user\_password | Set generated passwords for the WALLIX service accounts (wabadmin, wabsuper, wabupgrade). | `bool` | `false` | no |
+| set\_webui\_password\_and\_crypto | Bastion (Session Manager) only: set a generated web UI admin password and a generated encryption passphrase. | `bool` | `false` | no |
+| to\_base64\_encode | Should the user-data be encoded in base64? | `bool` | `false` | no |
+| to\_gzip | Should the user-data be compressed ? | `bool` | `false` | no |
+| use\_of\_lb | Configure the appliance to be served behind a load balancer. | `bool` | `false` | no |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
-| <a name="output_cloudinit_config"></a> [cloudinit\_config](#output\_cloudinit\_config) | The rendered user-data / cloud-init data |
-| <a name="output_wallix_crypto"></a> [wallix\_crypto](#output\_wallix\_crypto) | Cryptokey |
-| <a name="output_wallix_password_wabadmin"></a> [wallix\_password\_wabadmin](#output\_wallix\_password\_wabadmin) | Wabadmin password |
-| <a name="output_wallix_password_wabsuper"></a> [wallix\_password\_wabsuper](#output\_wallix\_password\_wabsuper) | Wabsuper password |
-| <a name="output_wallix_password_wabupgrade"></a> [wallix\_password\_wabupgrade](#output\_wallix\_password\_wabupgrade) | Wabupgrade password |
-| <a name="output_wallix_password_webui"></a> [wallix\_password\_webui](#output\_wallix\_password\_webui) | Webui Admin password |
+| ---- | ----------- |
+| cloudinit\_config | The rendered user-data / cloud-init data |
+| wallix\_crypto | Cryptokey |
+| wallix\_password\_wabadmin | Wabadmin password |
+| wallix\_password\_wabsuper | Wabsuper password |
+| wallix\_password\_wabupgrade | Wabupgrade password |
+| wallix\_password\_webui | Webui Admin password |
 <!-- END_TF_DOCS -->
